@@ -2,4 +2,6 @@
 
 class GameState
 {
+public:
+	virtual ~GameState() {}
 };

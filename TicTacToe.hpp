@@ -1,33 +1,26 @@
 #pragma once
-#include "GameState.hpp"
-#include "GameMove.hpp"
 #include "Game.hpp"
+#include "Move.hpp"
+#include "GameState.hpp"
 
-
-
-class TicTacToe : public Game 
+class TicTacToe : public Game
 {
 
-private:
-	GameState state;
+  private:
+    GameState state;
 
-public:
-	TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman);
-	
-	GameState* getState() = 0;
+  public:
+    TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman);
 
-	void nextTurn() = 0;
-	
-	static std::vector<Move>* getMoves(GameState* state, int player_id) = 0;
+    GameState getState() const { return state; };
 
-	static void simulateMove(GameState* state, Move* move, int player_id ) = 0;
+    void nextTurn() = 0;
 
-	static std::vector<int>* scoreState(GameState* state) = 0;
+    virtual std::vector<Move> getMoves(GameState& state, int player_id) const;
 
-	static bool isGameOver(GameState* state) = 0;
+    virtual void simulateMove(GameState& state, Move& move, int player_id) const;
 
+    virtual std::vector<int> scoreState(GameState& state) const = 0;
 
-	
+    virtual bool isGameOver(GameState& state) const = 0;
 };
-
-

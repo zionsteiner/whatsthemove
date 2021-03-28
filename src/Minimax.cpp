@@ -1,11 +1,12 @@
 #include "Minimax.hpp"
 
 #include <boost/mpi.hpp>
+#include <boost/serialization/vector.hpp>
 #include <mpi.h>
 
 namespace mpi = boost::mpi;
 
-Move Minimax::getBestMove(Game& game, std::uint16_t depth, std::uint16_t nProcesses)
+std::shared_ptr<Move> Minimax::getBestMove(Game* game, GameState* state, Move* move, std::uint16_t depth, std::uint16_t nProcesses)
 {
     // How is it run?
     // mpiexec -np x tictactoe
@@ -64,7 +65,7 @@ Move Minimax::getBestMove(Game& game, std::uint16_t depth, std::uint16_t nProces
 		# collect results
 		for i in range(nMoves - myMoves):
 			Move move
-			mpi_recv(&move, ANY_SRC)
+			mpi_recv(*move, ANY_SRC)
 			if move > myBestMove:
 				myBestMove = move
 
@@ -81,16 +82,57 @@ Move Minimax::getBestMove(Game& game, std::uint16_t depth, std::uint16_t nProces
     if (world.rank() == 0)
     {
         // Get initial moves
-        std::vector<Move> moves = game.getMoves(game.getState(), game.getCurrPlayerId());
+		GameState state = *game->getGameState();
+        std::vector<std::shared_ptr<Move>> moves = game->getMoves(state, game->getCurrPlayerId());
+
+		// Spawn processes
+		// ToDo: add argv
+		mpi::communicator childComm;
+		int maxProcs = 3;
+		MPI_Comm_spawn("minimax_worker", MPI_ARGV_NULL, maxProcs, MPI_INFO_NULL, MPI_COMM_SELF, childComm, MPI_ERRCODES_IGNORE);
+
+		int nChildren;
+		int movesPerProcess = moves.size() / MPI_Comm_remote_size(childComm, &nChildren) + 1;
+		int remainder = moves.size() - movesPerProcess * (nChildren + 1);
+		
+		// Get own moves to test
+		std::vector<std::shared_ptr<Move>> localMoves;
+		for (int i = 0; i < (movesPerProcess + remainder); ++i)
+		{
+			localMoves.push_back(moves.back());
+			moves.pop_back();
+		}
+
+		// Distribute moves
+		std::vector<Move> remoteMoves;
+		for (int i = 0; i < nChildren; ++i)
+		{
+			for (int j = 0; j < movesPerProcess; ++j)
+			{
+				remoteMoves.push_back(*moves.back());
+				moves.pop_back();
+			}
+				
+			childComm.send(i, 0, remoteMoves);
+			remoteMoves.clear();
+		}
+
+		// Simulate
+
+		// Collect results
     }
+	else
+	{
+		// Called from minimax_worker
+	}
 };
 
-Move Minimax::min(Game& game, GameState& state, std::uint16_t depth)
+std::shared_ptr<Move> Minimax::min(Game* game, GameState* state, std::uint16_t depth)
 {
 
 }
 
-Move Minimax::max(Game& game, GameState& state, std::uint16_t depth)
+std::shared_ptr<Move> Minimax::max(Game* game, GameState* state, std::uint16_t depth)
 {
 
 }
