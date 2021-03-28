@@ -1,10 +1,13 @@
 #pragma once
 
-#include "GameState.hpp"
+#include "Game.hpp"
 #include "Move.hpp"
+#include "Game.hpp"
 
-class Engine 
+#include <cstdint>
+
+class Engine
 {
-    public:
-        virtual Move getBestMove(GameState* state, int depth) = 0;
+  public:
+    virtual Move getBestMove(Game& game, std::uint16_t depth, std::uint16_t nProcesses) = 0;
 };

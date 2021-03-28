@@ -2,50 +2,28 @@
 
 TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman)
 {
-
-
 }
 
-GameState* TicTacToe::getState() {
-		
-
+GameState TicTacToe::getState() const
+{
 }
 
-std::vector<Move>* TicTacToe::getMoves(GameState* state, int player_id) {
-
-
-
+std::vector<Move> TicTacToe::getMoves(GameState& state, int player_id) const
+{
 }
 
-void TicTacToe::simulateMove(GameState* state, Move* move, int player_id) {
-
-
+void TicTacToe::simulateMove(GameState& state, Move& move, int player_id) const
+{
 }
 
-std::vector<int>* TicTacToe::scoreState(GameState* state) {
-
-
+std::vector<int> TicTacToe::scoreState(GameState& state) const
+{
 }
 
-bool TicTacToe::isGameOver(GameState* state) {
-
-
-	
+bool TicTacToe::isGameOver(GameState& state) const
+{
 }
 
-void TicTacToe::nextTurn() {
-
+void TicTacToe::nextTurn()
+{
 }
-
-				
-
-
-
-
-
-
-
-
-
-
-

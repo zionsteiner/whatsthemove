@@ -2,9 +2,12 @@
 
 #include "Engine.hpp"
 #include "GameState.hpp"
-#include "Move.hpp"
 
-class Minimax: Engine
+#include <cstdint>
+
+class Minimax : public Engine
 {
-    Move getBestMove(GameState* state, int depth);
+    Move getBestMove(Game& game, std::uint16_t depth, std::uint16_t nProcesses);
+    Move min(Game& game, GameState& state, std::uint16_t depth);
+    Move max(Game& game, GameState& state, std::uint16_t depth);
 };
