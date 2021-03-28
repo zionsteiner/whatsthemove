@@ -16,7 +16,7 @@ TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman)
 		HumanPlayer player2();
 	}else {
 		EnginePlayer player2();
-	}
+}
 
 	
 }
@@ -38,7 +38,7 @@ std::vector<Move> TicTacToe::getMoves(GameState& state, int player_id) const
 char TicTacToe::getXOrO(int player_id) {
 	if (player_id == 1) {
 		return 'X';
-	}
+}
 	return 'O';
 }
 
