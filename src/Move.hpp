@@ -5,4 +5,5 @@ class Move
 {
 public:
 	virtual ~Move() {}
+	virtual void setMoveFromUser();
 };
