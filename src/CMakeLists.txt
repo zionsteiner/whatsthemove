@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(tictactoe)
 
 # File vars
-set(SOURCE_FILES Engine.cpp Minimax.cpp TicTacToe.cpp)
-set(HEADER_FILES Engine.hpp Game.hpp GameState.hpp Move.hpp Minimax.hpp Player.hpp TicTacToe.hpp TicTacToeState.hpp TicTacToeMove.hpp)
+set(SOURCE_FILES Engine.cpp Minimax.cpp TicTacToe.cpp HumanPlayer.cpp EnginePlayer.cpp TicTacToeMove.cpp TicTacToeState.cpp)
+set(HEADER_FILES Engine.hpp Game.hpp GameState.hpp Move.hpp Minimax.hpp Player.hpp HumanPlayer.hpp EnginePlayer.hpp TicTacToe.hpp TicTacToeState.hpp TicTacToeMove.hpp)
 add_library(Engine ${SOURCE_FILES} ${HEADER_FILES})
 
 # Executables

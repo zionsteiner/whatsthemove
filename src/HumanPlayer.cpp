@@ -1,13 +1,14 @@
 #include "HumanPlayer.hpp"
+
 #include "Move.hpp"
 
+Move* HumanPlayer::getMove()
+{
+    // move.setMoveFromUser();
 
-void HumanPlayer::getMove(Move& move) {
-	move.setMoveFromUser();
+    // promptUser()
+    // move = getInput()
+    // while (!game.isValidateMove(state, move))
+    //     promptUser()
+    //     move = getInput()
 }
-
-
-
-
-
-
