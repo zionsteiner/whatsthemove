@@ -1,17 +1,12 @@
 #pragma once
 #include "Game.hpp"
-#include "TicTacToeState.hpp"
-#include "TicTacToeMove.hpp"
 #include "Player.hpp"
+#include "TicTacToeMove.hpp"
+#include "TicTacToeState.hpp"
+#include <memory>
 
 class TicTacToe : public Game
 {
-
-  private:
-    TicTacToeState state;
-    Player player1;
-    Player player2;
-
   public:
     TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman);
 
@@ -27,7 +22,7 @@ class TicTacToe : public Game
 
     std::vector<int> scoreGameState(GameState& state) const;
 
-    bool validMove(GateState&, Move& move) const;
+    bool isValidMove(GameState&, Move& move) const;
 
     char isGameOver(GameState& state) const;
 };

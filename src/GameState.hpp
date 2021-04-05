@@ -2,7 +2,7 @@
 
 class GameState
 {
-public:
-	virtual ~GameState() {}
-	virtual void print();
+  public:
+    virtual ~GameState() {}
+    virtual void print();
 };
