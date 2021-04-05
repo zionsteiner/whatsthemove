@@ -11,6 +11,7 @@ namespace mpi = boost::mpi;
 
 int main(int argc, char** argv)
 {
+    // ToDo: potential bug, idk what happens with multiple env objects in same process
     mpi::environment env;
 
     Minimax minimax;
@@ -21,26 +22,31 @@ int main(int argc, char** argv)
     mpi::communicator parentComm = mpi::communicator(parentCommInt, mpi::comm_create_kind::comm_take_ownership);
 
     TicTacToeState state;
-    parentComm.recv(0, MPI_ANY_TAG, state);
+    parentComm.recv(0, MPITag::State, state);
     std::vector<TicTacToeMove> initMoves;
-    parentComm.recv(0, MPI_ANY_TAG, initMoves);
+    parentComm.recv(0, MPITag::Moves, initMoves);
+    PlayerId playerId;
+    parentComm.recv(0, MPITag::PlayerId, playerId);
+    int depth;
+    parentComm.recv(0, MPITag::Depth, depth);
    
-    TicTacToe tictactoe(true, false);
+    std::shared_ptr<TicTacToe> tictactoe = std::make_shared<TicTacToe>(true, false);
 
-    // Get depth from argv
-    int depth = 3;
+    int bestScore;
+    std::shared_ptr<Move> bestMove = minimax.getBestMove(tictactoe.get(), state, initMoves[0], playerId, bestScore);
 
-
-    std::shared_ptr<Move> bestMove = minimax.getBestMove(tictactoe, state, initMoves[0], depth, 0);
+    int score;
     for (int i = 1; i < initMoves.size(); ++i)
     {
-        std::shared_ptr<Move> currMove = minimax.getBestMove(tictactoe, state, initMoves[i], depth, 0);
-        std::vector<int> scores = tictactoe.scoreGameState(state);
+        std::shared_ptr<Move> currMove = minimax.getBestMove(tictactoe, state, initMoves[i], playerId, score);
+        if (score > bestScore)
+        {
+            bestMove = currMove;
+            bestScore = score;
+        }   
     }
 
     TicTacToeMove tttBestMove = *(dynamic_cast<TicTacToeMove*>(bestMove.get()));
 
-    parentComm.send(0, 0, bestMove);
-
-    MPI_Finalize();
+    parentComm.send(0, MPITag::BestMove, tttBestMove);
 }

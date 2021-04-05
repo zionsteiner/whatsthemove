@@ -4,5 +4,5 @@ class GameState
 {
 public:
 	virtual ~GameState() {}
-	virtual void print();
+    virtual void print();
 };
