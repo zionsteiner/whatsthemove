@@ -5,7 +5,8 @@
 
 // ToDo: make sure all overriding methods match base Game class signatures
 
-TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman):
+
+TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman)
 {
     // Create player classes (engine player and human player)
     TicTacToeState state();
@@ -24,14 +25,25 @@ TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman):
         player2 = std::make_unique<HumanPlayer>();
     }
     else
-    std::vector<Move> moves;
+    {
+        player2 = std::make_unique<EnginePlayer>();
+    }
+
+    currPlayerId = PlayerId::Player1;
+}
+
+std::vector<std::shared_ptr<Move>> TicTacToe::getMoves(GameState& state, int player_id) const
+{
+    std::vector<std::shared_ptr<Move>> moves;
+
+    TicTacToeState* tttState = dynamic_cast<TicTacToeState*>(state);
     for (int i = 0; i < 3; i++)
     {
         for (int j = 0; j < 3; j++)
         {
-            if (state.board[i][j] == '.')
+            if (tttState->board[i][j] == '.')
             {
-                moves.push_back(newMove);
+                moves.push_back(make_shared<TicTacToeMove>(i,j));
             }
         }
     }
@@ -49,19 +61,21 @@ char TicTacToe::getXOrO(int player_id)
 
 void TicTacToe::simulateMove(GameState& state, Move& move, int player_id) const
 {
+    TicTacToeState* tttState = dynamic_cast<TicTacToeState*>(state);
+    TicTacToeMove* tttMove = dynamic_cast<TicTacToeMove*>(move);
     char moveValue = getXOrO(player_id);
-    state.board[move.getX()][move.getY()] = moveValue;
+    tttState->board[tttMove->getX()][tttMove->getY()] = moveValue;
 }
 
 std::vector<int> TicTacToe::scoreGameState(GameState& state) const
-{
-    char gameOver = isGameOver(state);
-    if (gameOver == 'X')
+{ 
+    
+    if (getWinnerId() == WinnerId::Player1)
     {
         std::vector<int> scores{ 1, -1 };
         return scores;
     }
-    else if (gameOver == 'O')
+    else if (getWinnerId() == WinnerId::Player2)
     {
         std::vector<int> scores{ -1, 1 };
         return scores;
@@ -72,34 +86,68 @@ std::vector<int> TicTacToe::scoreGameState(GameState& state) const
 
 bool isValidMove(GameState& state, Move& move) const
 {
-    return state.board[move.getX()][move.getY()] == '.';
+    
+    TicTacToeState* tttState = dynamic_cast<TicTacToeState*>(state);
+    return tttState->board[move.getX()][move.getY()] == '.';
 }
 
 // ToDo: should return bool
-char TicTacToe::isGameOver(GameState& state) const
+bool TicTacToe::isGameOver(GameState& state, WinnerId& winner) const
 {
+	
+
+    TicTacToeState* tttState = dynamic_cast<TicTacToeState*>(state);
+
     for (int i = 0; i < 3; i++)
     {
-        if (state.board[i][0] != '.' && state.board[i][0] == state.board[i][1] && state.board[i][0] == state.board[i][2])
+        if (tttState->board[i][0] != '.' && tttState->board[i][0] == tttState->board[i][1] && tttState->board[i][0] == tttState->board[i][2])
         {
-            return state.board[i][0];
+	    if (tttState->board[i][0] == 'X') {
+		winner = WinnerId::Player1;
+	    }else{
+		winner = WinnerId::Player2;
+	    }
+            return true;
         }
-        if (state.board[i][0] != '.' && state.board[0][i] == state.board[1][i] && state.board[0][i] == state.board[2][i])
+        if (tttState->board[0][i] != '.' && tttState->board[0][i] == tttState->board[1][i] && tttState->board[0][i] == tttState->board[2][i])
         {
-            return state.board[0][i];
+	    if (tttState->board[i][0] == 'X') {
+		winner = WinnerId::Player1;
+	    }else{
+		winner = WinnerId::Player2;
+	    }
+            return true;
         }
     }
 
     for (int i = 0; i < 3; i += 2)
     {
 
-        if (state.board[0][i] != '.' && state.board[0][i] == state.board[1][1] && state.board[0][i] == state.board[2][2 - i])
+        if (tttState->board[0][i] != '.' && tttState->board[0][i] == tttState->board[1][1] && tttState->board[0][i] == tttState->board[2][2 - i])
         {
-            return state.board[0][0];
+
+	    if (tttState->board[i][0] == 'X') {
+		winner = WinnerId::Player1;
+	    }else{
+		winner = WinnerId::Player2;
+	    }
+            return true;
         }
     }
+    bool isOneBoxEmpty = false;
+    for (int i = 0; i < 3; i++) {
+	for (int j = 0; j < 3; j++) {
+	    if (tttState->board[i][j] == '.') {
+	        isOneBoxEmpty = true;
+	    }
+	}
+    }
+    if (isOneBoxEmpty == false) {
+	winner = WinnerId::Tie;
+	return true;
+    }
 
-    return '.';
+    return false;
 }
 
 void makeMove(Move& move)

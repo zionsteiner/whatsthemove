@@ -3,6 +3,10 @@
 
 class Move
 {
+
+private:
+    void serialize(Archive& ar, const unsigned int version) {}
+
 public:
 	virtual ~Move() {}
 };

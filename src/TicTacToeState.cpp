@@ -10,6 +10,11 @@ TicTacToeState::TicTacToeState()
     }
 }
 
+void serialize(Archive& ar, const unsigned int version) {
+    ar& boost::serialization::base_object<ClassSerializationBase>(*this);
+    ar& board;
+}
+
 void TicTacToeState::printLine()
 {
     for (int i = 0; i < 7; i++)
