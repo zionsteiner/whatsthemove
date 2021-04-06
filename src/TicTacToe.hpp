@@ -1,5 +1,7 @@
 #pragma once
 #include "Game.hpp"
+#include "Player.hpp"
+#include "TicTacToeMove.hpp"
 #include "TicTacToeState.hpp"
 #include <memory>
 

@@ -5,7 +5,7 @@
 
 // ToDo: make sure all overriding methods match base Game class signatures
 
-TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman):
+TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman)
 {
     // Create player classes (engine player and human player)
     TicTacToeState state();
@@ -24,6 +24,15 @@ TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman):
         player2 = std::make_unique<HumanPlayer>();
     }
     else
+    {
+        player2 = std::make_unique<EnginePlayer>();
+    }
+
+    currPlayerId = PlayerId::Player1;
+}
+
+std::vector<std::shared_ptr<Move>> TicTacToe::getMoves(GameState& state, int player_id) const
+{
     std::vector<Move> moves;
     for (int i = 0; i < 3; i++)
     {
@@ -31,6 +40,7 @@ TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman):
         {
             if (state.board[i][j] == '.')
             {
+                TicTacToeMove newMove(i, j);
                 moves.push_back(newMove);
             }
         }
@@ -43,7 +53,11 @@ char TicTacToe::getXOrO(int player_id)
     if (player_id == 1)
     {
         return 'X';
+<<<<<<< HEAD
 }
+=======
+    }
+>>>>>>> engine
     return 'O';
 }
 
@@ -126,7 +140,11 @@ void TicTacToe::nextTurn()
         if (!isisValidMove)
         {
             cout << "You have entered an invalid move. Please try again." << endl;
+<<<<<<< HEAD
 }
+=======
+        }
+>>>>>>> engine
     }
     makeMove(move);
 }

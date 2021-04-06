@@ -29,7 +29,7 @@ class Minimax : public Engine
 
     void spawnWorkers();
 
-public:
+  public:
     Minimax(): depth(5), nWorkers(0) 
     {
       spawnWorkers();
