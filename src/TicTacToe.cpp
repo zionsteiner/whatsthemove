@@ -50,21 +50,22 @@ std::vector<std::shared_ptr<Move>> TicTacToe::getMoves(GameState& state, int pla
     return moves;
 }
 
-char TicTacToe::getXOrO(int player_id)
+char TicTacToe::getXOrO(PlayerId player_id)
 {
-    if (player_id == 1)
+    if (player_id == PlayerId::Player1)
     {
         return 'X';
-}
+    }
     return 'O';
 }
 
-void TicTacToe::simulateMove(GameState& state, Move& move, int player_id) const
+void TicTacToe::simulateMove(GameState& state, Move& move, PlayerId player_id, bool& thisPlayerTurnOver) const
 {
     TicTacToeState* tttState = dynamic_cast<TicTacToeState*>(state);
     TicTacToeMove* tttMove = dynamic_cast<TicTacToeMove*>(move);
     char moveValue = getXOrO(player_id);
     tttState->board[tttMove->getX()][tttMove->getY()] = moveValue;
+    thisPlayerTurnOver = true;
 }
 
 std::vector<int> TicTacToe::scoreGameState(GameState& state) const
@@ -158,63 +159,35 @@ void makeMove(Move& move)
 // ToDo: the game already knows who currPlayer is by currPlayerId
 void TicTacToe::nextTurn()
 {
-    // bool isTurnOver = false;
-    // while (!isTurnOver) {
-    //     move = player.getMove(game.getState(), game.getmoves())
-    //     int scoreDiff;
-    //     game.simulateMove(state, move, currPlayerId, isTurnOver)
-    //     currPlayerId = currPlayerId == PlayerId::Player1 ? PlayerId::Player2 : PlayerId::Player1
-    // }
-    bool isisValidMove = false;
-    TicTacToeMove move();
-    while (!isisValidMove)
-    {
-        std::shared_ptr<TicTacToe> move = std::shared_ptr(player.getMove());
-        isisValidMove = isValidMove(state, move);
-        if (!isisValidMove)
-        {
-            cout << "You have entered an invalid move. Please try again." << endl;
-}
-    }
-    makeMove(move);
+     bool isTurnOver = false;
+     while (!isTurnOver) {
+         move = player.getMove(game.getState(), game.getmoves());
+         game.simulateMove(state, move, currPlayerId, isTurnOver);
+         currPlayerId = currPlayerId == PlayerId::Player1 ? PlayerId::Player2 : PlayerId::Player1;
+     }
 }
 
 void TicTacToe::play()
 {
-    /* ToDo:
-    * while(!isGameOver())
-    * {
-    *   nextTurn()
-    * }
-    *
-    */
-
-    char gameOver = '.';
     currPlayerId = PlayerId::Player1;
-    bool playerOneNextTurn = true;
-    while (gameOver == '.')
+    WinnerId winner = WinnerId::None;
+    while(!isGameOver(state, winner))
     {
-        nextTurn();
-        gameOver = isGameOver(state);
-        if (playerOneTurn)
-        {
-            player = &player1;
-        else
-        {
-            player = &player2;
-        }
-        }
-        // Print game board
-        state.print();
+      state.print();
+      nextTurn();
     }
 
-    if (gameOver == 'X')
+    state.print();
+
+    if (winner == WinnerId::Player1)
     {
         cout << "Player 1 has won the game." << endl;
     }
-    else
+    else if (winner == WinnerId::Player2)
     {
         cout << "Player 2 has won the game." << endl;
+    }else  {
+	cout << "The game ended in a tie." << endl;
     }
     // Check to see if each player is human or not, then run next turn
 }

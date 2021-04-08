@@ -6,5 +6,5 @@
 class Player
 {
 public:
-    virtual std::shared_ptr<Move> getMove(Game* game) = 0;
+    virtual Move* getMove(Game* game, std::vector<Move*> moves) = 0;
 };
