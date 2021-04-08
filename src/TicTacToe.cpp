@@ -163,7 +163,9 @@ void TicTacToe::nextTurn()
      while (!isTurnOver) {
          move = player.getMove(game.getState(), game.getmoves());
          game.simulateMove(state, move, currPlayerId, isTurnOver);
-         currPlayerId = currPlayerId == PlayerId::Player1 ? PlayerId::Player2 : PlayerId::Player1;
+         if (isTurnOver) {
+	     currPlayerId = currPlayerId == PlayerId::Player1 ? PlayerId::Player2 : PlayerId::Player1;
+         }
      }
 }
 
