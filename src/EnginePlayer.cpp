@@ -15,5 +15,5 @@ std::shared_ptr<Move> EnginePlayer::getMove(Game* game)
     int depth = 3;
     int nProcesses = 3;
 
-    return engine->getBestMove(game, game->getGameState().get(), game->getCurrPlayerId(), nProcesses);
+    return engine->getBestMove(game, game->getGameState().get(), game->getCurrPlayerId());
 }

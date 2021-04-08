@@ -1,7 +1,18 @@
 #include "TicTacToeMove.hpp"
 
 // ToDo: boost serialize method
-TicTacToeMove::TicTacToeMove() {}
+TicTacToeMove::TicTacToeMove(int x, int y)
+{
+    xCoor = x;
+    yCoor = y;
+}
+
+void serialize(Archive& ar, const unsigned int version)
+{
+    ar& boost::serialization::base_object<ClassSerializationBase>(*this);
+    ar& x;
+    ar& y;
+}
 
 int TicTacToeMove::getX()
 {
@@ -11,21 +22,4 @@ int TicTacToeMove::getX()
 int TicTacToeMove::getY()
 {
     return yCoor;
-}
-
-void setMove(int x, int y)
-{
-    xCoor = x;
-    yCoor = y;
-}
-
-/* ToDo: Because different players create moves differently,
- * move should not know about player. Player is responsible for constructing move 
- */
-void setMoveFromUser()
-{
-    cout << "Enter the row which you'd like to mark [1-3]" << endl;
-    cin >> xCoor;
-    cout << "Enter the column which you'd like to mark [1-3]" << endl;
-    cin >> yCoor;
 }

@@ -3,6 +3,7 @@
 #include "Player.hpp"
 #include "TicTacToeMove.hpp"
 #include "TicTacToeState.hpp"
+
 #include <memory>
 
 class TicTacToe : public Game

@@ -25,21 +25,21 @@ struct GameConfig
 
 enum GameType
 {
-  TicTacToe
+    TicTacToe
 };
 
 enum PlayerId
 {
-  Player1,
-  Player2
+    Player1,
+    Player2
 };
 
 enum WinnerId
 {
-  Player1,
-  Player2,
-  Tie,
-  None
+    Player1,
+    Player2,
+    Tie,
+    None
 };
 
 class Game

@@ -1,20 +1,20 @@
 #pragma once
 
 #include "Engine.hpp"
-#include "GameState.hpp"
 #include "Game.hpp"
-#include <memory>
+#include "GameState.hpp"
 
 #include <cstdint>
+#include <memory>
 
 enum MPITag
 {
-  BestMove,
-  Moves,
-  PlayerId,
-  State,
-  Score,
-  Depth
+    BestMove,
+    Moves,
+    PlayerId,
+    State,
+    Score,
+    Depth
 };
 
 class Minimax : public Engine
@@ -30,14 +30,16 @@ class Minimax : public Engine
     void spawnWorkers();
 
   public:
-    Minimax(): depth(5), nWorkers(0) 
+    Minimax() :
+        depth(5), nWorkers(0)
     {
-      spawnWorkers();
+        spawnWorkers();
     }
 
-    Minimax(int depth, int nWorkers): depth(depth), nWorkers(nWorkers) 
+    Minimax(int depth, int nWorkers) :
+        depth(depth), nWorkers(nWorkers)
     {
-      spawnWorkers();
+        spawnWorkers();
     }
 
     void setDepth(int depth) { this->depth = depth; }
