@@ -5,8 +5,5 @@
 class HumanPlayer : public Player
 {
   public:
-    Move* getMove();
-    void promptUser();
-    int getX();
-    int getY();
+    std::shared_ptr<Move> getMove(const Game* game, std::vector<std::shared_ptr<Move>> moves);
 };

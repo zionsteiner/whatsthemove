@@ -1,25 +1,24 @@
 #include "TicTacToeMove.hpp"
 
-// ToDo: boost serialize method
+#include "Game.hpp"
+
 TicTacToeMove::TicTacToeMove(int x, int y)
 {
     xCoor = x;
     yCoor = y;
 }
 
-void serialize(Archive& ar, const unsigned int version)
-{
-    ar& boost::serialization::base_object<ClassSerializationBase>(*this);
-    ar& x;
-    ar& y;
-}
-
-int TicTacToeMove::getX()
+int TicTacToeMove::getX() const
 {
     return xCoor;
 }
 
-int TicTacToeMove::getY()
+int TicTacToeMove::getY() const
 {
     return yCoor;
+}
+
+std::string TicTacToeMove::toString() const
+{
+    return "X: " + std::to_string(xCoor) + ", Y: " + std::to_string(yCoor);
 }

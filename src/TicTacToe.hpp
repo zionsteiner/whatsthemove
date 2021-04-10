@@ -15,15 +15,13 @@ class TicTacToe : public Game
 
     void play();
 
-    std::vector<std::shared_ptr<Move>> getMoves(GameState& state, int player_id) const;
+    std::vector<std::shared_ptr<Move>> getMoves(GameState* state, PlayerId player_id) const;
 
-    char getXOrO(int player_id) const;
+    char getXOrO(PlayerId player_id) const;
 
-    void simulateMove(GameState& state, Move& move, int player_id) const;
+    void simulateMove(GameState* state, Move* move, PlayerId player_id, bool& thisPlayerTurnOver) const;
 
-    std::vector<int> scoreGameState(GameState& state) const;
+    std::vector<int> scoreGameState(GameState* state) const;
 
-    bool isValidMove(GameState&, Move& move) const;
-
-    char isGameOver(GameState& state) const;
+    bool isGameOver(GameState* state, WinnerId& winner) const;
 };

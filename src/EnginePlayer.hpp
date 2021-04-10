@@ -7,9 +7,10 @@ class EnginePlayer : public Player
 {
   protected:
     std::shared_ptr<Engine> engine;
+    GameType gameType;
 
   public:
-    EnginePlayer(Engine* engine);
+    EnginePlayer(Engine* engine, GameType gameType);
     void setEngine(Engine* engine);
-    std::shared_ptr<Move> getMove(Game* game);
+    std::shared_ptr<Move> getMove(const Game* game, std::vector<std::shared_ptr<Move>> moves);
 };

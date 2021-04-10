@@ -9,5 +9,5 @@
 class Engine
 {
   public:
-    virtual std::shared_ptr<Move> getBestMove(const Game* game, GameState* state, int playerId) = 0;
+    virtual std::shared_ptr<Move> getBestMove(const Game* game, GameState* state, GameType gameType, PlayerId playerId, int& score) = 0;
 };

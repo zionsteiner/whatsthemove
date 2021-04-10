@@ -1,6 +1,7 @@
 #pragma once
 #include "GameState.hpp"
 #include "Move.hpp"
+#include "Player.hpp"
 
 #include <memory>
 #include <vector>
@@ -19,22 +20,37 @@
  *      PROBLEM: How to communicate to child process what Game implementation to instantiate?
  */
 
+class Player;
+
 struct GameConfig
 {
 };
 
-enum GameType
+enum class GameType
 {
     TicTacToe
 };
 
-enum PlayerId
+enum class PlayerId
 {
     Player1,
     Player2
 };
 
-enum WinnerId
+namespace boost
+{
+    namespace serialization
+    {
+
+        template <class Archive>
+        void serialize(Archive& ar, PlayerId& p, const unsigned int version)
+        {
+            ar& p;
+        }
+    } // namespace serialization
+} // namespace boost
+
+enum class WinnerId
 {
     Player1,
     Player2,
@@ -42,27 +58,51 @@ enum WinnerId
     None
 };
 
+namespace boost
+{
+    namespace serialization
+    {
+
+        template <class Archive>
+        void serialize(Archive& ar, WinnerId& w, const unsigned int version)
+        {
+            ar& w;
+        }
+    } // namespace serialization
+} // namespace boost
+
 class Game
 {
   protected:
     std::shared_ptr<GameState> state;
     PlayerId currPlayerId;
-    std::unique_ptr<Player> player1;
-    std::unique_ptr<Player> player2;
+    WinnerId winnerId;
+    std::shared_ptr<Player> player1;
+    std::shared_ptr<Player> player2;
 
   public:
-    virtual std::shared_ptr<GameState> getGameState() { return std::make_shared<GameState>(state); }
-    virtual std::vector<std::shared_ptr<Move>> getMoves(GameState* state, int player_id) const = 0;
+    Game() = default;
+    virtual GameState* getGameState() const { return state.get(); }
+    virtual std::vector<std::shared_ptr<Move>> getMoves(GameState* state, PlayerId player_id) const = 0;
     virtual void simulateMove(GameState* state, Move* move, PlayerId player_id, bool& isTurnOver) const = 0;
-    virtual bool isValidMove(GameState* state, Move* move);
     virtual std::vector<int> scoreGameState(GameState* state) const = 0;
-    virtual bool isGameOver(GameState* state) const = 0;
+    virtual bool isGameOver(GameState* state, WinnerId& winner) const = 0;
     virtual void nextTurn() = 0;
     virtual void play() = 0;
     PlayerId getCurrPlayerId() const { return currPlayerId; }
+    WinnerId getWinnerId() const { return winnerId; }
 
-    // Returns
-    virtual WinnerId getWinnerId(GameState* state) const = 0;
+    std::shared_ptr<Player> getPlayer(PlayerId playerId) const
+    {
+        if (playerId == PlayerId::Player1)
+        {
+            return player1;
+        }
+        else
+        {
+            return player2;
+        }
+    }
 
     virtual ~Game(){};
 };

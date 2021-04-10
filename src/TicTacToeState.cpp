@@ -1,40 +1,35 @@
 #include "TicTacToeState.hpp"
 
-// ToDo: add includes
-// ToDo: boost serialize method
+#include <iostream>
+
 TicTacToeState::TicTacToeState()
 {
     for (int i = 0; i < 3; i++)
     {
-        std::vector<char> row{ '.', '.', '.' } board.push_back(row);
+        std::vector<char> row{ '.', '.', '.' };
+        board.push_back(row);
     }
 }
 
-void serialize(Archive& ar, const unsigned int version)
-{
-    ar& boost::serialization::base_object<ClassSerializationBase>(*this);
-    ar& board;
-}
-
-void TicTacToeState::printLine()
+void TicTacToeState::printLine() const
 {
     for (int i = 0; i < 7; i++)
     {
-        cout << "-";
+        std::cout << "-";
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
-void TicTacToeState::print()
+void TicTacToeState::print() const
 {
     for (int i = 0; i < 3; i++)
     {
         printLine();
         for (int j = 0; j < 3; j++)
         {
-            cout << "|" << board[i][j];
+            std::cout << "|" << board[i][j];
         }
-        cout << "|" << endl;
+        std::cout << "|" << std::endl;
     }
     printLine();
 }

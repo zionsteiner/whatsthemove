@@ -4,26 +4,37 @@
 #include "Game.hpp"
 #include "GameState.hpp"
 
+#include <boost/mpi.hpp>
 #include <cstdint>
 #include <memory>
 
-enum MPITag
+namespace mpi = boost::mpi;
+
+enum class MPITag
 {
     BestMove,
     Moves,
     PlayerId,
     State,
     Score,
-    Depth
+    Depth,
+    GameType
 };
+
+template <typename E>
+auto as_integer(E const value)
+    -> typename std::underlying_type<E>::type
+{
+    return static_cast<typename std::underlying_type<E>::type>(value);
+}
 
 class Minimax : public Engine
 {
   protected:
-    int depth;
+    int depth; // ToDo: make -1 correspond to infinite depth (until game over)
     int nWorkers;
-    std::shared_ptr<Move> min(Game* game, GameState* state, int& scoreDiff, PlayerId playerId, std::uint16_t depth);
-    std::shared_ptr<Move> max(Game* game, GameState* state, int& scoreDiff, PlayerId playerId, std::uint16_t depth);
+    std::shared_ptr<Move> min(const Game* game, GameState* state, int& scoreDiff, std::uint16_t depth);
+    std::shared_ptr<Move> max(const Game* game, GameState* state, int& scoreDiff, std::uint16_t depth);
     mpi::environment mpiEnv;
     mpi::communicator childComm;
 
@@ -44,5 +55,5 @@ class Minimax : public Engine
 
     void setDepth(int depth) { this->depth = depth; }
     void setNProcesses(int nWorkers) { this->nWorkers = nWorkers; }
-    std::shared_ptr<Move> getBestMove(Game* game, GameState* state, int playerId);
+    std::shared_ptr<Move> getBestMove(const Game* game, GameState* state, GameType gameType, PlayerId playerId, int& score);
 };
