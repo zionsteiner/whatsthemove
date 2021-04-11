@@ -62,24 +62,26 @@ char TicTacToe::getXOrO(PlayerId player_id) const
     return 'O';
 }
 
-void TicTacToe::simulateMove(GameState* state, Move* move, PlayerId player_id, bool& isTurnOver) const
+void TicTacToe::simulateMove(GameState* state, Move* move, PlayerId playerId, bool& isTurnOver) const
 {
     TicTacToeState* tttState = dynamic_cast<TicTacToeState*>(state);
     TicTacToeMove* tttMove = dynamic_cast<TicTacToeMove*>(move);
-    char moveValue = getXOrO(player_id);
+    char moveValue = getXOrO(playerId);
     tttState->board[tttMove->getX()][tttMove->getY()] = moveValue;
     isTurnOver = true;
 }
 
 std::vector<int> TicTacToe::scoreGameState(GameState* state) const
 {
+    WinnerId stateWinnerId;
+    isGameOver(state, stateWinnerId);
 
-    if (getWinnerId() == WinnerId::Player1)
+    if (stateWinnerId == WinnerId::Player1)
     {
         std::vector<int> scores{ 1, -1 };
         return scores;
     }
-    else if (getWinnerId() == WinnerId::Player2)
+    else if (stateWinnerId == WinnerId::Player2)
     {
         std::vector<int> scores{ -1, 1 };
         return scores;
@@ -110,7 +112,7 @@ bool TicTacToe::isGameOver(GameState* state, WinnerId& winner) const
         }
         if (tttState->board[0][i] != '.' && tttState->board[0][i] == tttState->board[1][i] && tttState->board[0][i] == tttState->board[2][i])
         {
-            if (tttState->board[i][0] == 'X')
+            if (tttState->board[0][i] == 'X')
             {
                 winner = WinnerId::Player1;
             }
@@ -128,7 +130,7 @@ bool TicTacToe::isGameOver(GameState* state, WinnerId& winner) const
         if (tttState->board[0][i] != '.' && tttState->board[0][i] == tttState->board[1][1] && tttState->board[0][i] == tttState->board[2][2 - i])
         {
 
-            if (tttState->board[i][0] == 'X')
+            if (tttState->board[0][i] == 'X')
             {
                 winner = WinnerId::Player1;
             }
@@ -139,24 +141,29 @@ bool TicTacToe::isGameOver(GameState* state, WinnerId& winner) const
             return true;
         }
     }
-    bool isOneBoxEmpty = false;
+
+    int nOpenBoxes = 0;
     for (int i = 0; i < 3; i++)
     {
         for (int j = 0; j < 3; j++)
         {
             if (tttState->board[i][j] == '.')
             {
-                isOneBoxEmpty = true;
+                nOpenBoxes++;
             }
         }
     }
-    if (isOneBoxEmpty == false)
+
+    if (nOpenBoxes == 1)
     {
         winner = WinnerId::Tie;
         return true;
     }
-
-    return false;
+    else
+    {
+        winner = WinnerId::None;
+        return false;
+    }
 }
 
 // ToDo: the game already knows who currPlayer is by currPlayerId

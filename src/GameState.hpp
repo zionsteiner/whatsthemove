@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/serialization/access.hpp>
+#include <memory>
 
 class GameState
 {
@@ -12,4 +13,5 @@ class GameState
   public:
     virtual ~GameState() {}
     virtual void print() const = 0;
+    virtual std::shared_ptr<GameState> clone() const = 0;
 };

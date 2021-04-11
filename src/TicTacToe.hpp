@@ -15,7 +15,7 @@ class TicTacToe : public Game
 
     void play();
 
-    std::vector<std::shared_ptr<Move>> getMoves(GameState* state, PlayerId player_id) const;
+    std::vector<std::shared_ptr<Move>> getMoves(GameState* state, PlayerId playerId) const;
 
     char getXOrO(PlayerId player_id) const;
 

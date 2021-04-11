@@ -23,6 +23,9 @@ class TicTacToeState : public GameState
   public:
     std::vector<std::vector<char>> board;
     TicTacToeState();
+    //TicTacToeState(const TicTacToeState& other);
+
     void print() const;
     void printLine() const;
+    std::shared_ptr<GameState> clone() const;
 };

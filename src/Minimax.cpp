@@ -82,17 +82,16 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* state, G
     MPI_Comm_get_parent(&parentComm);
 
     std::shared_ptr<Move> bestMove;
-    int bestScoreDiff;
+    int bestScoreDiff = playerId == PlayerId::Player1 ? INT_MIN : INT_MAX;
 
     if (parentComm == MPI_COMM_NULL)
     {
         // Get initial moves
-        GameState* state = game->getGameState();
         std::vector<std::shared_ptr<Move>> moves = game->getMoves(state, game->getCurrPlayerId());
 
         int nChildren;
         MPI_Comm_remote_size(childComm, &nChildren);
-        int movesPerProcess = moves.size() / nChildren + 1;
+        int movesPerProcess = moves.size() / (nChildren + 1);
         int remainder = moves.size() - movesPerProcess * (nChildren + 1);
 
         // Get own moves to test
@@ -136,13 +135,13 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* state, G
         }
 
         // Simulate
-        std::shared_ptr<GameState> stateCpy;
         int currScoreDiff;
 
+        std::shared_ptr<GameState> stateCpy;
         for (auto move : localMoves)
         {
             // Copy state
-            *stateCpy = *state;
+            stateCpy = state->clone();
             bool isTurnOver = true;
             game->simulateMove(state, move.get(), playerId, isTurnOver);
 
@@ -235,12 +234,13 @@ std::shared_ptr<Move> Minimax::min(const Game* game, GameState* state, int& scor
     // Recurse
     std::vector<std::shared_ptr<Move>> moves = game->getMoves(state, PlayerId::Player2);
     std::shared_ptr<Move> bestMove;
-    std::shared_ptr<GameState> prevState;
+    std::shared_ptr<GameState> stateCpy;
     int currScoreDiff;
     for (auto move : moves)
     {
-        *prevState = *state;
+        stateCpy = state->clone();
         bool isTurnOver;
+
         game->simulateMove(state, move.get(), PlayerId::Player2, isTurnOver);
 
         if (!isTurnOver)
@@ -258,7 +258,7 @@ std::shared_ptr<Move> Minimax::min(const Game* game, GameState* state, int& scor
             bestMove = move;
         }
 
-        *state = *prevState;
+        *state = *stateCpy;
     }
 
     scoreDiff = bestScoreDiff;
@@ -275,7 +275,7 @@ std::shared_ptr<Move> Minimax::max(const Game* game, GameState* state, int& scor
     bool isGameOver = game->isGameOver(state, winnerId);
 
     std::vector<int> scores = game->scoreGameState(state);
-    scoreDiff = scores[1] - scores[2];
+    scoreDiff = scores[0] - scores[1];
 
     if (isGameOver || depth == 0)
     {
@@ -285,11 +285,11 @@ std::shared_ptr<Move> Minimax::max(const Game* game, GameState* state, int& scor
     // Recurse
     std::vector<std::shared_ptr<Move>> moves = game->getMoves(state, PlayerId::Player1);
     std::shared_ptr<Move> bestMove;
-    std::shared_ptr<GameState> prevState;
+    std::shared_ptr<GameState> stateCpy;
     int currScoreDiff;
     for (auto move : moves)
     {
-        *prevState = *state;
+        stateCpy = state->clone();
         bool isTurnOver;
         game->simulateMove(state, move.get(), PlayerId::Player1, isTurnOver);
 
@@ -308,7 +308,7 @@ std::shared_ptr<Move> Minimax::max(const Game* game, GameState* state, int& scor
             bestMove = move;
         }
 
-        *state = *prevState;
+        *state = *stateCpy;
     }
 
     scoreDiff = bestScoreDiff;

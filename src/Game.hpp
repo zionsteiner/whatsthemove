@@ -82,8 +82,8 @@ class Game
 
   public:
     Game() = default;
-    virtual GameState* getGameState() const { return state.get(); }
-    virtual std::vector<std::shared_ptr<Move>> getMoves(GameState* state, PlayerId player_id) const = 0;
+    virtual std::shared_ptr<GameState> getGameState() const { return state; }
+    virtual std::vector<std::shared_ptr<Move>> getMoves(GameState* state, PlayerId playerId) const = 0;
     virtual void simulateMove(GameState* state, Move* move, PlayerId player_id, bool& isTurnOver) const = 0;
     virtual std::vector<int> scoreGameState(GameState* state) const = 0;
     virtual bool isGameOver(GameState* state, WinnerId& winner) const = 0;

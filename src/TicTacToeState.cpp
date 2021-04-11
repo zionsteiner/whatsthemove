@@ -11,6 +11,11 @@ TicTacToeState::TicTacToeState()
     }
 }
 
+//TicTacToeState::TicTacToeState(const TicTacToeState& other)
+//{
+//
+//}
+
 void TicTacToeState::printLine() const
 {
     for (int i = 0; i < 7; i++)
@@ -32,4 +37,9 @@ void TicTacToeState::print() const
         std::cout << "|" << std::endl;
     }
     printLine();
+}
+
+std::shared_ptr<GameState> TicTacToeState::clone() const
+{
+    return std::make_shared<TicTacToeState>(*this);
 }

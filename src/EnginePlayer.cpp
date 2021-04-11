@@ -13,9 +13,6 @@ void EnginePlayer::setEngine(Engine* engine)
 
 std::shared_ptr<Move> EnginePlayer::getMove(const Game* game, std::vector<std::shared_ptr<Move>> moves)
 {
-    int depth = 3;
-    int nProcesses = 3;
-
     int score;
-    return engine->getBestMove(game, game->getGameState(), gameType, game->getCurrPlayerId(), score);
+    return engine->getBestMove(game, game->getGameState().get(), gameType, game->getCurrPlayerId(), score);
 }
