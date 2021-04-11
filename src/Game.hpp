@@ -5,7 +5,8 @@
 
 #include <memory>
 #include <vector>
-
+#include <string>
+#include <iostream>
 /* 
  * PROBLEM 1: getMoves, getGameState, simulateMove, etc have game-specific logic. We want them to inherit from a general game model and require them to implement
  * these methods, but also want them to be static s.t. Minimax child processes will not have to have access to an instantiated Game object to work. 
@@ -103,6 +104,16 @@ class Game
             return player2;
         }
     }
+
+     void printPlayer(PlayerId playerId) const {
+	if (playerId == PlayerId::Player1) {
+	    std::cout << "Player 1 Turn: " << std::endl;
+	}
+	else {
+	    std::cout << "Player 2 Turn: " << std::endl;
+	}
+
+     }
 
     virtual ~Game(){};
 };

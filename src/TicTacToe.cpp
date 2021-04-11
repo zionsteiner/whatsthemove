@@ -169,9 +169,11 @@ bool TicTacToe::isGameOver(GameState* state, WinnerId& winner) const
 // ToDo: the game already knows who currPlayer is by currPlayerId
 void TicTacToe::nextTurn()
 {
+    
     bool isTurnOver = false;
     while (!isTurnOver)
     {
+	printPlayer(currPlayerId);
         std::shared_ptr<Move> move = getPlayer(currPlayerId)->getMove(this, getMoves(state.get(), currPlayerId));
         simulateMove(state.get(), move.get(), currPlayerId, isTurnOver);
         if (isTurnOver)
@@ -185,6 +187,7 @@ void TicTacToe::play()
 {
     currPlayerId = PlayerId::Player1;
     WinnerId winner = WinnerId::None;
+    std::cout << "Game Begins" << std::endl;
     while (!isGameOver(state.get(), winner))
     {
         state->print();
