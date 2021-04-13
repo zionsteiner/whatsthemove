@@ -5,6 +5,6 @@ int main(int argc, char** argv)
     // Parse game options from argv
     // Make GameConfig
     // Init Game object
-    TicTacToe game(false, false);
+    TicTacToe game(true, false);
     game.play();
 }

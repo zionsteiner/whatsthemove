@@ -9,8 +9,6 @@
 class TicTacToeMove : public Move
 {
   protected:
-    TicTacToeMove() :
-        xCoor(-1), yCoor(-1) {}
     int xCoor;
     int yCoor;
 
@@ -24,6 +22,8 @@ class TicTacToeMove : public Move
     }
 
   public:
+    TicTacToeMove() :
+        xCoor(-1), yCoor(-1) {}
     TicTacToeMove(int x, int y);
     int getX() const;
     int getY() const;

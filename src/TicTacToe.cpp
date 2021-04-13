@@ -3,6 +3,7 @@
 #include "EnginePlayer.hpp"
 #include "HumanPlayer.hpp"
 #include "Minimax.hpp"
+#include "mpi.h"
 
 #include <iostream>
 
@@ -19,7 +20,7 @@ TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman)
     }
     else
     {
-        player1 = std::make_unique<EnginePlayer>(new Minimax(10, 0), GameType::TicTacToe);
+        player1 = std::make_unique<EnginePlayer>(new Minimax(GameType::TicTacToe, 10, 3));
     }
 
     if (isPlayerTwoHuman)
@@ -28,7 +29,7 @@ TicTacToe::TicTacToe(bool isPlayerOneHuman, bool isPlayerTwoHuman)
     }
     else
     {
-        player2 = std::make_unique<EnginePlayer>(new Minimax(10, 0), GameType::TicTacToe);
+        player2 = std::make_unique<EnginePlayer>(new Minimax(GameType::TicTacToe, 10, 3));
     }
 
     currPlayerId = PlayerId::Player1;
@@ -166,14 +167,13 @@ bool TicTacToe::isGameOver(GameState* state, WinnerId& winner) const
     }
 }
 
-// ToDo: the game already knows who currPlayer is by currPlayerId
 void TicTacToe::nextTurn()
 {
-    
+
     bool isTurnOver = false;
     while (!isTurnOver)
     {
-	printPlayer(currPlayerId);
+        printPlayer(currPlayerId);
         std::shared_ptr<Move> move = getPlayer(currPlayerId)->getMove(this, getMoves(state.get(), currPlayerId));
         simulateMove(state.get(), move.get(), currPlayerId, isTurnOver);
         if (isTurnOver)

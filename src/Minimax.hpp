@@ -18,42 +18,56 @@ enum class MPITag
     State,
     Score,
     Depth,
-    GameType
+    GameType,
+    Start,
+    Exit
 };
 
 template <typename E>
 auto as_integer(E const value)
-    -> typename std::underlying_type<E>::type
+    -> typename std::underlying_type<E>::type // Wtf?
 {
     return static_cast<typename std::underlying_type<E>::type>(value);
 }
 
+// ToDo: test this logic on a more complicated game (scores besides win/lose).
 class Minimax : public Engine
 {
   protected:
-    int depth; // ToDo: make -1 correspond to infinite depth (until game over)
-    int nWorkers;
-    std::shared_ptr<Move> min(const Game* game, GameState* state, int& scoreDiff, std::uint16_t depth);
-    std::shared_ptr<Move> max(const Game* game, GameState* state, int& scoreDiff, std::uint16_t depth);
+    int depth;    // ToDo: make -1 correspond to infinite depth (until game over)
+    int nWorkers; // ToDo: not sure if oversubscribe works for spawned processes, if not, not sure what the max should be
+    std::shared_ptr<Move> min(GameState* state, int& scoreDiff, std::uint16_t depth);
+    std::shared_ptr<Move> max(GameState* state, int& scoreDiff, std::uint16_t depth);
     mpi::environment mpiEnv;
     mpi::communicator childComm;
 
     void spawnWorkers();
 
   public:
-    Minimax() :
-        depth(5), nWorkers(0)
+    Minimax(GameType gameType) :
+        Engine(gameType), depth(5), nWorkers(0)
     {
         spawnWorkers();
     }
 
-    Minimax(int depth, int nWorkers) :
-        depth(depth), nWorkers(nWorkers)
+    Minimax(GameType gameType, int depth, int nWorkers) :
+        Engine(gameType), depth(depth), nWorkers(nWorkers)
     {
         spawnWorkers();
+    }
+
+    ~Minimax()
+    {
+        if (nWorkers > 0)
+        {
+            for (int i = 0; i < nWorkers; ++i)
+            {
+                childComm.send(i, as_integer(MPITag::Exit));
+            }
+        }
     }
 
     void setDepth(int depth) { this->depth = depth; }
     void setNProcesses(int nWorkers) { this->nWorkers = nWorkers; }
-    std::shared_ptr<Move> getBestMove(const Game* game, GameState* state, GameType gameType, PlayerId playerId, int& score);
+    std::shared_ptr<Move> getBestMove(GameState* state, PlayerId playerId, int& score);
 };

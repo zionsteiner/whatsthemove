@@ -8,7 +8,9 @@
 
 namespace mpi = boost::mpi;
 
-std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState, GameType gameType, PlayerId playerId, int& score)
+// ToDo: eliminate all switches on class type
+// ToDo: make functions
+std::shared_ptr<Move> Minimax::getBestMove(GameState* rawState, PlayerId playerId, int& score)
 {
     // How is it run?
     // mpiexec -np x tictactoe
@@ -93,6 +95,7 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState
 
         int nChildren;
         MPI_Comm_remote_size(childComm, &nChildren);
+
         int movesPerProcess = moves.size() / (nChildren + 1);
         int remainder = moves.size() - movesPerProcess * (nChildren + 1);
 
@@ -105,35 +108,40 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState
         }
 
         // Distribute moves
-        std::vector<std::shared_ptr<Move>> remoteMoves;
-        for (int i = 0; i < nChildren; ++i)
+        if (movesPerProcess > 0)
         {
-            for (int j = 0; j < movesPerProcess; ++j)
+            std::vector<std::shared_ptr<Move>> remoteMoves;
+            for (int i = 0; i < nChildren; ++i)
             {
-                remoteMoves.push_back(moves.back());
-                moves.pop_back();
+                for (int j = 0; j < movesPerProcess; ++j)
+                {
+                    remoteMoves.push_back(moves.back());
+                    moves.pop_back();
+                }
+
+                childComm.send(i, as_integer(MPITag::Start));
+
+                switch (gameType)
+                {
+                    case GameType::TicTacToe:
+                        std::vector<TicTacToeMove> tttMoves;
+                        for (auto move : remoteMoves)
+                        {
+                            tttMoves.push_back(*dynamic_cast<TicTacToeMove*>(move.get()));
+                        }
+
+                        childComm.send(i, as_integer(MPITag::Moves), tttMoves);
+
+                        TicTacToeState tttState = *(dynamic_cast<TicTacToeState*>(state.get()));
+                        childComm.send(i, as_integer(MPITag::State), tttState);
+
+                        break;
+                }
+
+                childComm.send(i, as_integer(MPITag::PlayerId), playerId);
+
+                remoteMoves.clear();
             }
-
-            switch (gameType)
-            {
-                case GameType::TicTacToe:
-                    childComm.send(i, as_integer(MPITag::GameType), gameType);
-
-                    std::vector<TicTacToeMove> tttMoves;
-                    for (auto move : remoteMoves)
-                    {
-                        tttMoves.push_back(*dynamic_cast<TicTacToeMove*>(move.get()));
-                    }
-
-                    childComm.send(i, as_integer(MPITag::Moves), tttMoves);
-                    break;
-            }
-
-            childComm.send(i, as_integer(MPITag::State), *state);
-            childComm.send(i, as_integer(MPITag::PlayerId), playerId);
-            childComm.send(i, as_integer(MPITag::Depth), depth);
-
-            remoteMoves.clear();
         }
 
         // Simulate
@@ -152,11 +160,11 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState
                 if (!isTurnOver)
                 {
                     // Go again
-                    max(game, state.get(), currScoreDiff, depth);
+                    max(state.get(), currScoreDiff, depth - 1);
                 }
                 else
                 {
-                    min(game, state.get(), currScoreDiff, depth);
+                    min(state.get(), currScoreDiff, depth - 1);
                 }
             }
             else
@@ -164,11 +172,11 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState
                 if (!isTurnOver)
                 {
                     // Go again
-                    min(game, state.get(), currScoreDiff, depth);
+                    min(state.get(), currScoreDiff, depth - 1);
                 }
                 else
                 {
-                    max(game, state.get(), currScoreDiff, depth);
+                    max(state.get(), currScoreDiff, depth - 1);
                 }
             }
 
@@ -184,18 +192,23 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState
         }
 
         // Collect results
-        int remoteScoreDiff;
-        for (int i = 0; i < nChildren; ++i)
+        if (movesPerProcess > 0)
         {
-            std::shared_ptr<Move> remoteBestMove;
-
-            childComm.recv(i, as_integer(MPITag::BestMove), *remoteBestMove);
-            childComm.recv(i, as_integer(MPITag::Score), remoteScoreDiff);
-
-            if ((playerId == PlayerId::Player1 && remoteScoreDiff > bestScoreDiff) || (playerId == PlayerId::Player2 && remoteScoreDiff < bestScoreDiff))
+            int remoteScoreDiff;
+            for (int i = 0; i < nChildren; ++i)
             {
-                bestMove = remoteBestMove;
-                bestScoreDiff = remoteScoreDiff;
+                //std::shared_ptr<Move> remoteBestMove;
+                TicTacToeMove remoteBestMove;
+
+                childComm.recv(i, as_integer(MPITag::BestMove), remoteBestMove);
+                childComm.recv(i, as_integer(MPITag::Score), remoteScoreDiff);
+
+                if ((playerId == PlayerId::Player1 && remoteScoreDiff > bestScoreDiff) || (playerId == PlayerId::Player2 && remoteScoreDiff < bestScoreDiff))
+                {
+                    printf("remote move is better\n");
+                    bestMove = std::make_shared<TicTacToeMove>(remoteBestMove);
+                    bestScoreDiff = remoteScoreDiff;
+                }
             }
         }
     }
@@ -203,11 +216,11 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState
     {
         if (playerId == PlayerId::Player1)
         {
-            bestMove = max(game, state.get(), bestScoreDiff, depth);
+            bestMove = max(state.get(), bestScoreDiff, depth);
         }
         else
         {
-            bestMove = min(game, state.get(), bestScoreDiff, depth);
+            bestMove = min(state.get(), bestScoreDiff, depth);
         }
     }
 
@@ -216,9 +229,8 @@ std::shared_ptr<Move> Minimax::getBestMove(const Game* game, GameState* rawState
     return bestMove;
 }
 
-// ToDo: figure out when to make a copy of state and scoreDiff and when to set reference value
 // P2 is min
-std::shared_ptr<Move> Minimax::min(const Game* game, GameState* rawState, int& scoreDiff, std::uint16_t depth)
+std::shared_ptr<Move> Minimax::min(GameState* rawState, int& scoreDiff, std::uint16_t depth)
 {
     int bestScoreDiff = INT_MAX;
 
@@ -249,11 +261,11 @@ std::shared_ptr<Move> Minimax::min(const Game* game, GameState* rawState, int& s
 
         if (!isTurnOver)
         {
-            min(game, state.get(), currScoreDiff, depth - 1);
+            min(state.get(), currScoreDiff, depth - 1);
         }
         else
         {
-            max(game, state.get(), currScoreDiff, depth - 1);
+            max(state.get(), currScoreDiff, depth - 1);
         }
 
         if (currScoreDiff < bestScoreDiff)
@@ -271,7 +283,7 @@ std::shared_ptr<Move> Minimax::min(const Game* game, GameState* rawState, int& s
 }
 
 // P1 is max
-std::shared_ptr<Move> Minimax::max(const Game* game, GameState* rawState, int& scoreDiff, std::uint16_t depth)
+std::shared_ptr<Move> Minimax::max(GameState* rawState, int& scoreDiff, std::uint16_t depth)
 {
     int bestScoreDiff = INT_MIN;
 
@@ -301,11 +313,11 @@ std::shared_ptr<Move> Minimax::max(const Game* game, GameState* rawState, int& s
 
         if (!isTurnOver)
         {
-            max(game, state.get(), currScoreDiff, depth - 1);
+            max(state.get(), currScoreDiff, depth - 1);
         }
         else
         {
-            min(game, state.get(), currScoreDiff, depth - 1);
+            min(state.get(), currScoreDiff, depth - 1);
         }
 
         if (currScoreDiff > bestScoreDiff)
@@ -328,5 +340,13 @@ void Minimax::spawnWorkers()
     {
         MPI_Comm childCommInt = static_cast<MPI_Comm>(childComm);
         MPI_Comm_spawn("minimax_worker", MPI_ARGV_NULL, nWorkers, MPI_INFO_NULL, 0, MPI_COMM_SELF, &childCommInt, MPI_ERRCODES_IGNORE);
+        MPI_Comm_remote_size(childCommInt, &nWorkers);
+        childComm = mpi::communicator(childCommInt, mpi::comm_create_kind::comm_take_ownership);
+
+        for (int i = 0; i < nWorkers; ++i)
+        {
+            childComm.send(i, as_integer(MPITag::GameType), gameType);
+            childComm.send(i, as_integer(MPITag::Depth), depth - 1);
+        }
     }
 }

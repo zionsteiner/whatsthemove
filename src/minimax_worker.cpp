@@ -9,6 +9,11 @@
 
 namespace mpi = boost::mpi;
 
+// Change minimax.getBestMove() to be a template method that somehow knows what type to send to minimax_workers
+
+void work(mpi::communicator& comm, GameType& gameType, Minimax& minimax);
+
+// ToDo: eliminate all switches on class type
 int main(int argc, char** argv)
 {
     // ToDo: potential bug, idk what happens with multiple env objects in same process
@@ -19,33 +24,55 @@ int main(int argc, char** argv)
     MPI_Comm_get_parent(&parentCommInt);
     mpi::communicator parentComm = mpi::communicator(parentCommInt, mpi::comm_create_kind::comm_take_ownership);
 
-    GameType gameType;
-    parentComm.recv(0, as_integer(MPITag::GameType), gameType);
-    PlayerId playerId;
-    parentComm.recv(0, as_integer(MPITag::PlayerId), playerId);
     int depth;
     parentComm.recv(0, as_integer(MPITag::Depth), depth);
 
-    Minimax minimax(depth, 0);
+    GameType gameType;
+    parentComm.recv(0, as_integer(MPITag::GameType), gameType);
+
+    Minimax minimax(gameType, depth, 0);
+
+    while (true)
+    {
+        if (boost::optional<mpi::status> status = parentComm.iprobe(0, as_integer(MPITag::Start)))
+        {
+            parentComm.recv(0, as_integer(MPITag::Start));
+            work(parentComm, gameType, minimax);
+        }
+        else if (boost::optional<mpi::status> status = parentComm.iprobe(0, as_integer(MPITag::Exit)))
+        {
+            parentComm.recv(0, as_integer(MPITag::Exit));
+            break;
+        }
+    }
+
+    return 0;
+}
+
+void work(mpi::communicator& comm, GameType& gameType, Minimax& minimax)
+{
+    PlayerId playerId;
+    comm.recv(0, as_integer(MPITag::PlayerId), playerId);
 
     std::shared_ptr<Game> game;
     std::shared_ptr<GameState> state;
     std::vector<std::shared_ptr<Move>> initMoves;
 
-    // ToDo: fix this
-    std::vector<TicTacToeMove> moves;
-
     switch (gameType)
     {
         case GameType::TicTacToe:
-        default:
-            game = std::make_shared<TicTacToe>(true, true);
-            parentComm.recv(0, as_integer(MPITag::State), *state);
-            parentComm.recv(0, as_integer(MPITag::Moves), moves);
+            std::vector<TicTacToeMove> moves;
+            TicTacToeState tttState;
 
+            game = std::make_shared<TicTacToe>(true, true);
+
+            comm.recv(0, as_integer(MPITag::State), tttState);
+            state = tttState.clone();
+
+            comm.recv(0, as_integer(MPITag::Moves), moves);
             for (auto move : moves)
             {
-                initMoves.emplace_back(&move);
+                initMoves.push_back(std::make_shared<TicTacToeMove>(move));
             }
 
             break;
@@ -57,30 +84,31 @@ int main(int argc, char** argv)
     int currScoreDiff;
     for (auto move : initMoves)
     {
-        *stateCpy = *state;
+        stateCpy = state->clone();
         bool isTurnOver = true;
+
         game->simulateMove(state.get(), move.get(), playerId, isTurnOver);
 
         if (playerId == PlayerId::Player1)
         {
             if (!isTurnOver)
             {
-                minimax.getBestMove(game.get(), state.get(), gameType, PlayerId::Player1, currScoreDiff);
+                minimax.getBestMove(state.get(), PlayerId::Player1, currScoreDiff);
             }
             else
             {
-                minimax.getBestMove(game.get(), state.get(), gameType, PlayerId::Player2, currScoreDiff);
+                minimax.getBestMove(state.get(), PlayerId::Player2, currScoreDiff);
             }
         }
         else
         {
             if (!isTurnOver)
             {
-                minimax.getBestMove(game.get(), state.get(), gameType, PlayerId::Player2, currScoreDiff);
+                minimax.getBestMove(state.get(), PlayerId::Player2, currScoreDiff);
             }
             else
             {
-                minimax.getBestMove(game.get(), state.get(), gameType, PlayerId::Player1, currScoreDiff);
+                minimax.getBestMove(state.get(), PlayerId::Player1, currScoreDiff);
             }
         }
 
@@ -90,13 +118,16 @@ int main(int argc, char** argv)
             bestScoreDiff = currScoreDiff;
         }
 
-        *state = *stateCpy;
+        state = stateCpy->clone();
     }
 
-    TicTacToeMove tttBestMove = *(dynamic_cast<TicTacToeMove*>(bestMove.get()));
+    switch (gameType)
+    {
+        case GameType::TicTacToe:
+            TicTacToeMove tttBestMove = *(dynamic_cast<TicTacToeMove*>(bestMove.get()));
+            comm.send(0, as_integer(MPITag::BestMove), tttBestMove);
+            break;
+    }
 
-    parentComm.send(0, as_integer(MPITag::BestMove), tttBestMove);
-    parentComm.send(0, as_integer(MPITag::Score), bestScoreDiff);
-
-    return 0;
+    comm.send(0, as_integer(MPITag::Score), bestScoreDiff);
 }

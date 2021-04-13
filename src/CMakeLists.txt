@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(tictactoe)
 
 # File vars
+# ToDo: move tictactoe into project exe, not library
 set(SOURCE_FILES Minimax.cpp TicTacToe.cpp HumanPlayer.cpp EnginePlayer.cpp TicTacToeMove.cpp TicTacToeState.cpp)
 set(HEADER_FILES Engine.hpp Game.hpp GameState.hpp Move.hpp Minimax.hpp Player.hpp HumanPlayer.hpp EnginePlayer.hpp TicTacToe.hpp TicTacToeState.hpp TicTacToeMove.hpp)
 add_library(Engine ${SOURCE_FILES} ${HEADER_FILES})
