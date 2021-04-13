@@ -205,7 +205,6 @@ std::shared_ptr<Move> Minimax::getBestMove(GameState* rawState, PlayerId playerI
 
                 if ((playerId == PlayerId::Player1 && remoteScoreDiff > bestScoreDiff) || (playerId == PlayerId::Player2 && remoteScoreDiff < bestScoreDiff))
                 {
-                    printf("remote move is better\n");
                     bestMove = std::make_shared<TicTacToeMove>(remoteBestMove);
                     bestScoreDiff = remoteScoreDiff;
                 }
